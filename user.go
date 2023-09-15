@@ -1,6 +1,8 @@
 package main
 
-import "net"
+import (
+	"net"
+)
 
 type User struct {
 	Name string
@@ -59,9 +61,24 @@ func (u *User) DoMessage(msg string) {
 			u.SendMsg(onlineMsg)
 		}
 		u.server.mapLock.Unlock()
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		// 消息格式 rename|张三
+		uName := msg[7:]
+		// 判断名字是否存在
+		if _, ok := u.server.OnlineMap[uName]; uName == u.Name || !ok {
+			u.server.mapLock.Lock()
+			delete(u.server.OnlineMap, u.Name)
+			u.Name = uName
+			u.server.OnlineMap[u.Name] = u
+			u.server.mapLock.Unlock()
+			u.SendMsg("你已经更新用户名为" + u.Name + "\n")
+		} else {
+			u.SendMsg("该用户名已经存在")
+		}
 	} else {
 		u.server.BroadCast(u, msg)
 	}
+
 }
 
 // 监听当前User channel的方法，一旦有消息，就发送给对端客户端
