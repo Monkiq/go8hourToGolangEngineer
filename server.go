@@ -54,16 +54,8 @@ func (s *Server) Handler(conn net.Conn) {
 	//  当前连接的业务
 	//fmt.Println("连接建立成功")
 
-	user := NewUser(conn)
-
-	// 用户上线,将用户加入到onlineMap中
-
-	s.mapLock.Lock()
-	s.OnlineMap[user.Name] = user
-	s.mapLock.Unlock()
-	// 广播当前用户上线消息
-	s.BroadCast(user, "已上线")
-
+	user := NewUser(conn, s)
+	user.Online()
 	// 接受客户端发送的消息
 	go func() {
 		buf := make([]byte, 1024)
@@ -81,7 +73,7 @@ func (s *Server) Handler(conn net.Conn) {
 			msg := string(buf[:n-1])
 
 			//将得到的消息进行广播
-			s.BroadCast(user, msg)
+			user.DoMessage(msg)
 		}
 	}()
 
