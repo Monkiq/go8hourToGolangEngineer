@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 type Client struct {
@@ -50,17 +52,27 @@ func (c *Client) menu() bool {
 	}
 }
 
+func (c *Client) UpdateName() {
+	fmt.Println("请输入你新的用户名")
+	fmt.Scanln(&c.Name)
+	c.conn.Write([]byte("rename|" + c.Name + "\n"))
+}
+
 func (c *Client) Run() {
 	for c.flag != 0 {
 		for c.menu() != true {
 		}
+		go func() {
+			// 一旦conn有数据,就拷贝到标准输出上,会一直阻塞
+			io.Copy(os.Stdout, c.conn)
+		}()
 		switch c.flag {
 		case 1:
 			fmt.Println("你选择群聊模式")
 		case 2:
 			fmt.Println("你选择的是私聊模式")
 		case 3:
-			fmt.Println("你选择更新用户名模式")
+			c.UpdateName()
 		}
 	}
 	fmt.Println("程序即将退出")
