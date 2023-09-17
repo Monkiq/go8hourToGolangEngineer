@@ -58,6 +58,25 @@ func (c *Client) UpdateName() {
 	c.conn.Write([]byte("rename|" + c.Name + "\n"))
 }
 
+func (c *Client) PublicChat() {
+	fmt.Println("请输入消息")
+	msg := ""
+	fmt.Scanln(&msg)
+
+	for msg != "exit" {
+		if len(msg) != 0 {
+			_, err := c.conn.Write([]byte(msg))
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+		}
+		msg = ""
+		fmt.Scanln(&msg)
+	}
+
+}
+
 func (c *Client) Run() {
 	for c.flag != 0 {
 		for c.menu() != true {
@@ -68,7 +87,7 @@ func (c *Client) Run() {
 		}()
 		switch c.flag {
 		case 1:
-			fmt.Println("你选择群聊模式")
+			c.PublicChat()
 		case 2:
 			fmt.Println("你选择的是私聊模式")
 		case 3:
